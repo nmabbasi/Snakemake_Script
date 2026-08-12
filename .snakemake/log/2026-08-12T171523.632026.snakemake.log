@@ -1,0 +1,144 @@
+Lints for snakefile /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk:
+    * Absolute path "/dataset_0.blobDB.json" in line 8:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/run_insecta_odb10/full_table.tsv" in line 12:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/^S/ {{print ">"$2"\n"$3}}" in line 47:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Path composition with '+' in line 3:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 12:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 34:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for rule fastqc (line 21, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * No log directive defined:
+      Without a log directive, all output will be printed to the terminal. In
+      distributed environments, this means that errors are harder to discover.
+      In local environments, output of concurrent jobs will be mixed and become
+      unreadable.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#log-files
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+
+Lints for rule hifiasm (line 30, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * No log directive defined:
+      Without a log directive, all output will be printed to the terminal. In
+      distributed environments, this means that errors are harder to discover.
+      In local environments, output of concurrent jobs will be mixed and become
+      unreadable.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#log-files
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+    * Shell command directly uses variable OUTPUT_PREFIX from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule contigs (line 41, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * No log directive defined:
+      Without a log directive, all output will be printed to the terminal. In
+      distributed environments, this means that errors are harder to discover.
+      In local environments, output of concurrent jobs will be mixed and become
+      unreadable.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#log-files
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+
+Lints for rule busco (line 50, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * No log directive defined:
+      Without a log directive, all output will be printed to the terminal. In
+      distributed environments, this means that errors are harder to discover.
+      In local environments, output of concurrent jobs will be mixed and become
+      unreadable.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#log-files
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+    * Shell command directly uses variable BUSCO_LINEAGE from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule blastn (line 61, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+
+Lints for rule blobtools (line 76, /home/runner/work/Snakemake-PacBio-Assembly/Snakemake-PacBio-Assembly/Pacbio-assembly-snakemake.smk):
+    * Specify a conda environment or container for each rule.:
+      This way, the used software for each specific step is documented, and the
+      workflow can be executed on any machine without prerequisites.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#integrated-package-management
+      https://snakemake.readthedocs.io/en/latest/snakefiles/deployment.html#running-jobs-in-containers
+    * Shell command directly uses variable BLOBDIR from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+    * Shell command directly uses variable TAXDUMP from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+    * Shell command directly uses variable BLOBDIR from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
