@@ -1,83 +1,92 @@
-import os
+INPUT_FASTQ = "C.C.fastq.gz"
+OUTPUT_PREFIX = "asm_CC.hifiasm.asm"
+PRIMARY_GFA = OUTPUT_PREFIX + ".p_ctg.gfa"
+PRIMARY_CONTIGS = OUTPUT_PREFIX + ".p_ctgl2.fasta"
+BUSCO_OUTDIR = "output"
+BLASTN_OUT = "blastn.tsv"
+BLOBDIR = "tempo"
+BLOBDB = BLOBDIR + "/dataset_0.blobDB.json"
 
-# Define input and output files
-input_fastq = "C.C.fastq.gz"
-output_asm = "asm_CC.hifiasm.asm"
-output_contigs = "asm_CC.hifiasm.asm.p_ctgl2.fasta"
-output_busco = "output"
-output_blastn = "blastn.tsv"
-output_blobtools = "tempo/dataset_0.blobDB.json"
+TAXDUMP = "../../../../3-DATABASES/taxdump"
+BUSCO_LINEAGE = "busco_downloads/lineages/insecta_odb10"
+BUSCO_TABLE = BUSCO_OUTDIR + "/run_insecta_odb10/full_table.tsv"
+READ_TO_CONTIG_BAM = "read_to_contig.bam"
 
-# Define the number of threads to use
-threads = 92
 
-# Define the location of the taxdump folder
-taxdump = "../../../../3-DATABASES/taxdump"
+rule all:
+    input:
+        BLOBDB
 
-# Define the lineage file for BUSCO analysis
-busco_lineage = "/home/biopatic/abbasi/P1--Cotesia-Pacbio/2-Canu-Assembly/CC/CC_hifi/3-Busco_analysis/busco_downloads/lineages/insecta_odb10"
 
-# Define the rule to run FastQC on the input fastq file
 rule fastqc:
     input:
-        input_fastq
+        INPUT_FASTQ
     output:
-        "fastqc_report.html"
+        html="fastqc_report.html"
     shell:
         "fastqc {input} --outdir ."
 
-# Define the rule to run hifiasm on the input fastq file
+
 rule hifiasm:
     input:
-        input_fastq
+        INPUT_FASTQ
     output:
-        output_asm
+        OUTPUT_PREFIX + ".p_ctg.gfa"
+    threads:
+        32
     shell:
-        "hifiasm -l2 --primary -o {output} -t {threads} {input}"
+        "hifiasm -l2 --primary -o {OUTPUT_PREFIX} -t {threads} {input}"
 
-# Define the rule to generate contigs from the hifiasm assembly
+
 rule contigs:
     input:
-        output_asm
+        PRIMARY_GFA
     output:
-        output_contigs
+        PRIMARY_CONTIGS
     shell:
-        "awk '/^S/{{print \">{2}\\n\"{3}}}' {input}.p_ctg.gfa | fold > {output}"
+        r"""awk '/^S/ {{print ">"$2"\n"$3}}' {input} | fold > {output}"""
 
-# Define the rule to run BUSCO analysis on the contigs
+
 rule busco:
     input:
-        output_contigs
+        PRIMARY_CONTIGS
     output:
-        directory(output_busco)
+        directory(BUSCO_OUTDIR)
+    threads:
+        16
     shell:
-        "busco -i {input} -o {output} -l {busco_lineage} -m genome"
+        "busco -i {input} -o {output} -l {BUSCO_LINEAGE} -m genome --cpu {threads}"
 
-# Define the rule to run BLASTn on the contigs
+
 rule blastn:
     input:
-        output_contigs
+        PRIMARY_CONTIGS
     output:
-        output_blastn
+        BLASTN_OUT
     threads:
-        180
+        16
+    log:
+        "log_blastn.txt"
     shell:
         "blastn -query {input} -db nt -outfmt '6 qseqid staxids bitscore std' "
         "-max_target_seqs 10 -max_hsps 1 -num_threads {threads} "
-        "-evalue 1e-25 -out {output} &> log_blastn.txt"
+        "-evalue 1e-25 -out {output} > {log} 2>&1"
 
-# Define the rule to run BlobTools on the contigs
+
 rule blobtools:
     input:
-        output_contigs,
-        "blastn.tsv"
+        fasta=PRIMARY_CONTIGS,
+        hits=BLASTN_OUT,
+        busco=BUSCO_TABLE,
+        cov=READ_TO_CONTIG_BAM
     output:
-        output_blobtools
+        BLOBDB
     threads:
-        192
+        16
+    log:
+        "log_blob.txt"
     shell:
-        "blobtools create --fasta {input[0]} --cov /home/biopatic/abbasi/P1--Cotesia-Pacbio/2-Assembly/2-Hafiasm/Hifiasm_on_CC/Inspector/Pacbio_CC_Hifiasm_out/read_to_contig.bam "
-        "--hits {input[1]} --taxdump {taxdump} "
-        "--busco ../../Hifiasm_on_CC/BUSCO/BUSCO_Hifiasm_Result/CC.hifiasm.p_ctgl0.busco.out/run_insecta_odb10/full_table.tsv "
-        "--threads {threads} {output} &> log_blob"
-
+        "mkdir -p {BLOBDIR} && "
+        "blobtools create --fasta {input.fasta} --cov {input.cov} "
+        "--hits {input.hits} --taxdump {TAXDUMP} --busco {input.busco} "
+        "--threads {threads} {BLOBDIR} > {log} 2>&1"

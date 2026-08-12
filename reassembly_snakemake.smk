@@ -1,76 +1,93 @@
-# Index reference genome in fasta format
+REFERENCE = "21.fasta"
+TRUSTED_CONTIGS = "2_freshwater.fasta"
+SAMPLES = ["2_fw_Tous12m", "2_fw_Tous25m"]
+
+READS = {
+    "2_fw_Tous12m": ("input/P1.renamed.fasta", "input/P2.renamed.fasta"),
+    "2_fw_Tous25m": ("input/P1.renamed.fasta", "input/P2.renamed.fasta"),
+}
+
+BWA = "bwa"
+SPADES = "spades.py"
+EXTRACT_SCRIPT = "extract.fasta.from.sam.using.list.pl"
+
+
+rule all:
+    input:
+        "assembly_try1/contigs.fasta"
+
+
 rule index:
     input:
-        "21.fasta"
+        REFERENCE
     output:
-        "21.fasta.bwt",
-        "21.fasta.pac",
-        "21.fasta.amb",
-        "21.fasta.ann",
-        "21.fasta.sa"
+        REFERENCE + ".bwt",
+        REFERENCE + ".pac",
+        REFERENCE + ".amb",
+        REFERENCE + ".ann",
+        REFERENCE + ".sa"
     shell:
-        "/home/rohit/josemanuel/programs/bwa-0.6.2/bwa index {input}"
+        "{BWA} index {input}"
 
-# Align reads to indexed reference genome using BWA
+
 rule aln:
     input:
-        "21.fasta",
-        "input/P1.renamed.fasta",
-        "input/P2.renamed.fasta"
+        ref=REFERENCE,
+        p1=lambda wc: READS[wc.sample][0],
+        p2=lambda wc: READS[wc.sample][1]
     output:
-        "21.fasta.{sample}.P1.sai",
-        "21.fasta.{sample}.P2.sai"
-    params:
-        threads = 30
+        p1=REFERENCE + ".{sample}.P1.sai",
+        p2=REFERENCE + ".{sample}.P2.sai"
+    threads:
+        30
     shell:
-        "/home/rohit/josemanuel/programs/bwa-0.6.2/bwa aln -t {params.threads} {input[0]} {input[1]} > {output[0]}",
-        "/home/rohit/josemanuel/programs/bwa-0.6.2/bwa aln -t {params.threads} {input[0]} {input[2]} > {output[1]}"
+        """
+        {BWA} aln -t {threads} {input.ref} {input.p1} > {output.p1}
+        {BWA} aln -t {threads} {input.ref} {input.p2} > {output.p2}
+        """
 
-# Generate SAM file from aligned reads
+
 rule sampe:
     input:
-        "21.fasta",
-        "21.fasta.{sample}.P1.sai",
-        "21.fasta.{sample}.P2.sai",
-        "input/P1.renamed.fasta",
-        "input/P2.renamed.fasta"
+        ref=REFERENCE,
+        p1_sai=REFERENCE + ".{sample}.P1.sai",
+        p2_sai=REFERENCE + ".{sample}.P2.sai",
+        p1=lambda wc: READS[wc.sample][0],
+        p2=lambda wc: READS[wc.sample][1]
     output:
         "21_m_{sample}.sam"
     shell:
-        "/home/rohit/josemanuel/programs/bwa-0.6.2/bwa sampe {input[0]} {input[1]} {input[2]} {input[3]} {input[4]} > {output}"
+        "{BWA} sampe {input.ref} {input.p1_sai} {input.p2_sai} {input.p1} {input.p2} > {output}"
 
-# Extract sequences from SAM file based on list of read IDs
+
 rule extract_fasta:
     input:
-        "21_m_{sample}.sam",
-        "input/{sample}_list.txt"
+        sam="21_m_{sample}.sam",
+        ids="input/{sample}_list.txt"
     output:
         "{sample}_final.fasta"
     shell:
-        "perl extract.fasta.from.sam.using.list.pl -s {input[0]} -l {input[1]} -o {output}"
+        "perl {EXTRACT_SCRIPT} -s {input.sam} -l {input.ids} -o {output}"
 
-# Combine extracted sequences into one fasta file
+
 rule combine_fasta:
     input:
-        "2_fw_Tous12m_final.fasta",
-        "2_fw_Tous25m_final.fasta"
+        expand("{sample}_final.fasta", sample=SAMPLES)
     output:
         "all_reads.fasta"
     shell:
         "cat {input} > {output}"
 
-# Assemble contigs from combined fasta file using SPAdes
+
 rule spades:
     input:
-        "all_reads.fasta",
-        "2_freshwater.fasta"
+        reads="all_reads.fasta",
+        trusted=TRUSTED_CONTIGS
     output:
         "assembly_try1/contigs.fasta"
+    threads:
+        20
     params:
-        threads = 20,
-        memory = 500
+        memory=500
     shell:
-        "/home/rohit/josemanuel/programs/SPAdes-3.6.1-Linux/bin/spades.py -o assembly_try1 --12 {input[0]} --trusted-contigs {input[1]} --only-assembler --careful -t {params.threads} -m {params.memory}"
-
-
-
+        "{SPADES} -o assembly_try1 --12 {input.reads} --trusted-contigs {input.trusted} --only-assembler --careful -t {threads} -m {params.memory}"
